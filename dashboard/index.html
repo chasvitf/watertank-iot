@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WaterTank · แดชบอร์ดแท็งก์น้ำอัจฉริยะ ESP32</title>
+  <meta name="description" content="แดชบอร์ดสดของแท็งก์น้ำอัจฉริยะ ESP32: ระดับน้ำจากเซนเซอร์อัลตราโซนิก เติมน้ำอัตโนมัติ กันปั๊มทำงานแห้ง แจ้งเตือนน้ำใกล้หมด ผ่าน MQTT">
+  <meta name="theme-color" content="#0b4f8a">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="WaterTank · แท็งก์น้ำอัจฉริยะ ESP32">
+  <meta property="og:description" content="ESP32 + เซนเซอร์อัลตราโซนิก + รีเลย์ปั๊ม ดูระดับน้ำ สั่งเติมน้ำ และรับแจ้งเตือนจากมือถือผ่าน MQTT (TLS)">
+  <meta property="og:image" content="https://watertank-th.vercel.app/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="/favicon.svg" alt="" width="36" height="36">
+      <div>
+        <h1>WaterTank</h1>
+        <p>แดชบอร์ดแท็งก์น้ำอัจฉริยะ · ESP32 + MQTT</p>
+      </div>
+    </div>
+    <div class="conn">
+      <span class="device" id="deviceId">demo-01</span>
+      <span class="pill" id="status"><i></i><b>กำลังเชื่อมต่อ…</b></span>
+      <span class="ago" id="ago"></span>
+    </div>
+  </header>
+
+  <section class="banner" id="offline" hidden>
+    <div>
+      <b id="offlineTitle">บอร์ด demo-01 ออฟไลน์อยู่</b>
+      <span id="offlineText">บอร์ดจริงรันบน Wokwi (ตัวจำลอง ESP32) เป็นช่วง ๆ</span>
+    </div>
+    <div class="banner-actions">
+      <button id="startSim" class="primary">▶ เปิดอุปกรณ์จำลองในเบราว์เซอร์</button>
+      <a href="https://github.com/chasvitf/watertank-iot#ลองรันบอร์ดบน-wokwi" target="_blank" rel="noopener">วิธีรันบอร์ดบน Wokwi</a>
+    </div>
+  </section>
+  <section class="banner sim" id="simBanner" hidden>
+    <div><b>กำลังใช้อุปกรณ์จำลองในเบราว์เซอร์ (ไม่ใช่บอร์ดจริง)</b>
+      <span>ใช้ตรรกะควบคุมชุดเดียวกับเฟิร์มแวร์ ESP32 เวลาเดินเร็ว 10 เท่า ลองปิดวาล์วน้ำเข้าเพื่อดูระบบหยุดปั๊มเมื่อน้ำไม่ขึ้น</span></div>
+    <div class="banner-actions">
+      <label class="valve"><input type="checkbox" id="valve"> ปิดวาล์วน้ำเข้า</label>
+      <button id="stopSim">กลับไปดูบอร์ดจริง</button>
+    </div>
+  </section>
+
+  <section class="alertbar" id="alertbar" role="alert" hidden>
+    <b id="alertText"></b>
+    <div class="banner-actions">
+      <button id="silence">ปิดเสียงเตือนที่บอร์ด</button>
+      <button id="reset" class="primary" hidden>ล้างข้อผิดพลาด (แก้สาเหตุแล้ว)</button>
+    </div>
+  </section>
+
+  <main class="grid">
+    <section class="panel tank-panel">
+      <div class="tank-wrap">
+        <svg id="tank" viewBox="0 0 184 220" role="img" aria-label="ระดับน้ำในแท็งก์"></svg>
+        <div class="tank-info">
+          <h2>ระดับน้ำ</h2>
+          <div class="big"><b id="v-level">–</b><small>%</small></div>
+          <p class="litres"><b id="v-litres">–</b> ลิตร จาก <span id="v-tank">1,000</span></p>
+          <p class="pumpline" id="pumpLine">ปั๊ม –</p>
+          <dl class="stats">
+            <div><dt>ใช้ไปวันนี้</dt><dd><b id="v-used">–</b> ลิตร</dd></div>
+            <div><dt>เติมน้ำวันนี้</dt><dd><b id="v-refills">–</b> ครั้ง</dd></div>
+            <div><dt>เซนเซอร์ถึงผิวน้ำ</dt><dd><b id="v-dist">–</b> ซม.</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel control">
+      <h2>ควบคุม</h2>
+      <div class="seg" role="group" aria-label="โหมด">
+        <button data-mode="auto">อัตโนมัติ</button>
+        <button data-mode="manual">สั่งเอง</button>
+      </div>
+      <button class="switch" id="pump"><span class="icon">💧</span><span><b>ปั๊มเติมน้ำ</b><em id="pumpState">–</em></span><i class="knob"></i></button>
+      <p class="hint" id="modeHint">โหมดอัตโนมัติ: บอร์ดตัดสินใจเองจากระดับน้ำ</p>
+
+      <h3>ค่าเกณฑ์</h3>
+      <label>เริ่มเติมเมื่อน้ำต่ำกว่า <output id="startOut">30</output>%
+        <input type="range" id="start" min="10" max="70" step="1" value="30">
+      </label>
+      <label>หยุดเติมที่ <output id="stopOut">90</output>%
+        <input type="range" id="stop" min="40" max="98" step="1" value="90">
+      </label>
+      <label>เตือนเมื่อน้ำต่ำกว่า <output id="alarmOut">15</output>%
+        <input type="range" id="alarm" min="5" max="40" step="1" value="15">
+      </label>
+      <p class="hint" id="cfgHint"></p>
+      <button id="saveCfg" class="primary" disabled>บันทึกค่าเกณฑ์ลงบอร์ด</button>
+      <button id="notify" class="ghost">🔔 เปิดแจ้งเตือนบนอุปกรณ์นี้</button>
+    </section>
+
+    <section class="panel history">
+      <div class="panel-head">
+        <h2>ย้อนหลัง 1 ชั่วโมง</h2>
+        <div class="legend"><span class="ll">ระดับน้ำ</span><span class="lp">ปั๊มทำงาน</span><span class="lth">เริ่ม / หยุดเติม</span></div>
+      </div>
+      <svg id="chart"></svg>
+    </section>
+
+    <section class="panel side">
+      <div>
+        <h2>เหตุการณ์ล่าสุด</h2>
+        <ul class="log" id="log"></ul>
+      </div>
+      <div>
+        <h2>ข้อมูลบอร์ด</h2>
+        <dl class="meta">
+          <dt>สัญญาณ Wi-Fi</dt><dd id="m-rssi">–</dd>
+          <dt>เปิดเครื่องมาแล้ว</dt><dd id="m-uptime">–</dd>
+          <dt>เฟิร์มแวร์</dt><dd id="m-fw">–</dd>
+          <dt>MQTT</dt><dd class="mono" id="m-topic">–</dd>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>ESP32 · เซนเซอร์อัลตราโซนิก HC-SR04 · รีเลย์ปั๊ม · บัซเซอร์ · จอ OLED · MQTT over TLS</p>
+    <p>ทำโดย <a href="https://fastwork.co/user/chasvitf/iot-13786561" target="_blank" rel="noopener">Chanavee · รับทำ Arduino / ESP32 / IoT บน Fastwork</a> · <a href="https://github.com/chasvitf/watertank-iot" target="_blank" rel="noopener">ซอร์สโค้ดและวงจร</a></p>
+  </footer>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

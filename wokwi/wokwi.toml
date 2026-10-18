@@ -1,0 +1,6 @@
+# For the Wokwi extension in VS Code: build the sketch with arduino-cli first
+#   arduino-cli compile --fqbn esp32:esp32:esp32 --output-dir build ../firmware/watertank
+[wokwi]
+version = 1
+firmware = "build/watertank.ino.merged.bin"
+elf = "build/watertank.ino.elf"
