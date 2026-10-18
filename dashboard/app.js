@@ -77,7 +77,7 @@ function watch(device, simulated = false) {
   if (!simulated) client.subscribe(`${state.base}/#`, { qos: 1 });
   render();
   // Retained messages arrive at once; if nothing says "online", show the offline banner.
-  setTimeout(() => { if (state.status === null) { state.status = "offline"; render(); } }, 4000);
+  setTimeout(() => { if (state.status === null) { state.status = "offline"; render(); } }, 2500);
 }
 
 function send(cmd) {
