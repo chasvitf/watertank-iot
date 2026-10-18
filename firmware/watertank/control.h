@@ -156,12 +156,16 @@ class UsageMeter {
  public:
   // day: local day number (changes at midnight); 0 if the clock is not set yet.
   void update(float level, bool pumpOn, uint32_t day, float tankLitres) {
-    if (day != day_) {  // midnight: start the new day from the current level
+    if (day != day_) {
+      // The first real date after boot (NTP answers a few seconds in) is the same
+      // day, so keep what was counted; only a real midnight starts a new day.
+      if (day_ != 0) {
+        usedLitres_ = 0;
+        refills_ = 0;
+        ref_ = level;
+        hasRef_ = true;
+      }
       day_ = day;
-      usedLitres_ = 0;
-      refills_ = 0;
-      ref_ = level;
-      hasRef_ = true;
     }
     if (pumpOn) {
       if (!wasPumping_) refills_++;

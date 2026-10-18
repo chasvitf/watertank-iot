@@ -58,6 +58,14 @@ test("usage counts drops, not refills, and resets at midnight", () => {
   assert.equal(u.used, 0);
 });
 
+test("a refill that starts before the clock is set still counts", () => {
+  const u = new UsageMeter();
+  u.update(25, false, 0, 1000);
+  u.update(25.5, true, 0, 1000);
+  u.update(27, true, 20380, 1000);
+  assert.equal(u.refills, 1);
+});
+
 test("settings validation", () => {
   assert.ok(settingsValid(30, 90, 15));
   assert.ok(!settingsValid(30, 40, 15));

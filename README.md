@@ -6,7 +6,7 @@
 หยุดปั๊มทันทีถ้าเปิดแล้วน้ำไม่ขึ้น (กันปั๊มทำงานแห้งจนไหม้) ส่งเสียงเตือนเมื่อน้ำใกล้หมด แสดงผลบนจอ OLED
 และส่งข้อมูลผ่าน MQTT แบบเข้ารหัส (TLS) ไปยังหน้าเว็บ ดูระดับน้ำ สั่งปั๊ม ปรับค่าเกณฑ์ และรับแจ้งเตือนจากมือถือได้
 
-![แดชบอร์ด (อุปกรณ์จำลอง)](docs/dashboard.png)
+![แดชบอร์ดขณะบอร์ดบน Wokwi ออนไลน์และกำลังเติมน้ำ](docs/dashboard-live.png)
 
 ## ทำอะไรได้บ้าง
 
@@ -53,12 +53,12 @@ Broker: `broker.emqx.io` (TLS 8883 สำหรับบอร์ด, WebSocket 
 และมี port เป็น JavaScript ([`dashboard/control.js`](dashboard/control.js)) ให้อุปกรณ์จำลองบนเว็บทำงานเหมือนบอร์ดทุกอย่าง
 
 ```bash
-make test       # C++ 12 กลุ่ม + JavaScript 6 เคส: เติม/หยุดตามค่า, น้ำไม่ขึ้น, ปั๊มนานเกิน,
+make test       # C++ 13 กลุ่ม + JavaScript 7 เคส: เติม/หยุดตามค่า, น้ำไม่ขึ้น, ปั๊มนานเกิน,
                 # เซนเซอร์หาย, สั่งเองแต่ไม่ล้น, millis() วนรอบหลัง 49 วัน, นับน้ำที่ใช้
 make compile    # คอมไพล์เฟิร์มแวร์ ESP32 (ARDUINO_CLI="/Applications/Arduino IDE.app/Contents/Resources/app/lib/backend/resources/arduino-cli" ถ้าใช้ตัวที่มากับ Arduino IDE 2)
 ```
 
-ผลล่าสุด: ทดสอบผ่านทั้งหมด, คอมไพล์ผ่านด้วย esp32 core 3.3.11 (`--warnings all` ไม่มี warning) ใช้ flash 81%
+ผลล่าสุด (19 ต.ค. 2569): ทดสอบผ่านทั้งหมด, คอมไพล์ผ่านด้วย esp32 core 3.3.11 (`--warnings all` ไม่มี warning) ใช้ flash 81% และรันบน Wokwi จริง: ต่อ Wi-Fi, ต่อ MQTT แบบ TLS, วัดระดับได้ 24% แล้วเปิดปั๊มเติมเอง ส่งข้อมูลขึ้นแดชบอร์ดสด
 
 ## อุปกรณ์จำลองบนเว็บ
 
@@ -68,10 +68,12 @@ make compile    # คอมไพล์เฟิร์มแวร์ ESP32 (ARD
 
 ## ลองรันบอร์ดบน Wokwi
 
+![บอร์ดบน Wokwi ขณะเติมน้ำ: จอ OLED ขึ้น LIVE 24% Pump ON](docs/wokwi.png)
+
 1. เปิด https://wokwi.com/projects/new/esp32
 2. วางเนื้อหา [`wokwi/sketch.ino`](wokwi/sketch.ino) (สร้างจากไฟล์ใน `firmware/` ด้วย `make wokwi`) และ [`wokwi/diagram.json`](wokwi/diagram.json)
 3. Library Manager: เพิ่มตามรายการใน [`wokwi/libraries.txt`](wokwi/libraries.txt)
-4. กด ▶ แล้วคลิกที่เซนเซอร์ HC-SR04 เพื่อเลื่อนระยะ (ระยะ 86 ซม. = น้ำ 34%) ดูปั๊มเปิด/ปิดและค่าบนจอ OLED
+4. กด ▶ (เริ่มที่ระยะ 95 ซม. = น้ำ 25% ปั๊มจึงเปิดเติม) แล้วคลิกที่เซนเซอร์ HC-SR04 เพื่อเลื่อนระยะ ดูปั๊มเปิด/ปิดและค่าบนจอ OLED
 
 ## ใช้งานจริง
 

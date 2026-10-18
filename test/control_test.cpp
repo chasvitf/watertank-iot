@@ -132,6 +132,14 @@ static void usageCountsDrops() {
   CHECK(u.usedLitres() == 0 && u.refills() == 0);
 }
 
+static void refillBeforeClockIsCounted() {
+  UsageMeter u;
+  u.update(25, false, 0, 1000);                      // boot: no NTP time yet (day 0)
+  u.update(25.5f, true, 0, 1000);                    // refill starts before the clock is set
+  u.update(27, true, 20380, 1000);                   // NTP answers: same day, keep counting
+  CHECK(u.refills() == 1);
+}
+
 static void settingsChecks() {
   CHECK(settingsValid(30, 90, 15));
   CHECK(!settingsValid(30, 40, 15));                 // stop too close to start: pump would cycle
@@ -151,6 +159,7 @@ int main() {
   lowLevelAlarm();
   timerWrap();
   usageCountsDrops();
+  refillBeforeClockIsCounted();
   settingsChecks();
   if (failures) {
     std::printf("%d check(s) failed\n", failures);

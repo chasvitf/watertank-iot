@@ -88,11 +88,14 @@ export class UsageMeter {
 
   update(level, pumpOn, day, tankLitres) {
     if (day !== this.day) {
+      // The first real date after boot is the same day; only a real midnight resets.
+      if (this.day !== 0) {
+        this.used = 0;
+        this.refills = 0;
+        this.ref = level;
+        this.hasRef = true;
+      }
       this.day = day;
-      this.used = 0;
-      this.refills = 0;
-      this.ref = level;
-      this.hasRef = true;
     }
     if (pumpOn) {
       if (!this.wasPumping) this.refills++;

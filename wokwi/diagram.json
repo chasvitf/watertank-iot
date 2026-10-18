@@ -13,17 +13,17 @@
     {
       "type": "wokwi-hc-sr04",
       "id": "sonar",
-      "top": -170,
-      "left": -190,
+      "top": -175,
+      "left": -40,
       "attrs": {
-        "distance": "86"
+        "distance": "95"
       }
     },
     {
       "type": "board-ssd1306",
       "id": "oled",
-      "top": -170,
-      "left": 150,
+      "top": -165,
+      "left": 190,
       "attrs": {
         "i2cAddress": "0x3c"
       }
@@ -31,15 +31,15 @@
     {
       "type": "wokwi-relay-module",
       "id": "relayPump",
-      "top": 95,
-      "left": 320,
+      "top": 40,
+      "left": 190,
       "attrs": {}
     },
     {
       "type": "wokwi-buzzer",
       "id": "buzzer",
-      "top": 175,
-      "left": 330,
+      "top": 140,
+      "left": 200,
       "attrs": {
         "volume": "0.1"
       }
@@ -47,7 +47,7 @@
     {
       "type": "wokwi-led",
       "id": "ledPump",
-      "top": -40,
+      "top": 50,
       "left": 330,
       "attrs": {
         "color": "blue",
@@ -57,8 +57,8 @@
     {
       "type": "wokwi-led",
       "id": "ledAlarm",
-      "top": -40,
-      "left": 380,
+      "top": 110,
+      "left": 330,
       "attrs": {
         "color": "red",
         "label": "alarm"
@@ -67,9 +67,9 @@
     {
       "type": "wokwi-resistor",
       "id": "r1",
-      "top": 20,
-      "left": 300,
-      "rotate": 90,
+      "top": 110,
+      "left": 320,
+      "rotate": 0,
       "attrs": {
         "value": "220"
       }
@@ -77,9 +77,9 @@
     {
       "type": "wokwi-resistor",
       "id": "r2",
-      "top": 20,
-      "left": 350,
-      "rotate": 90,
+      "top": 170,
+      "left": 320,
+      "rotate": 0,
       "attrs": {
         "value": "220"
       }
@@ -87,8 +87,8 @@
     {
       "type": "wokwi-pushbutton",
       "id": "btn",
-      "top": 190,
-      "left": -180,
+      "top": 230,
+      "left": -120,
       "attrs": {
         "color": "yellow",
         "label": "SILENCE / RESET"
